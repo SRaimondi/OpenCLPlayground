@@ -17,6 +17,7 @@ set(SOURCE_FILES
 
 add_executable(OpenCLPlayground ${SOURCE_FILES})
 
+# Uncomment this to execute the SAXPY demo using double instead of float
 # target_compile_definitions(OpenCLPlayground PUBLIC -DSAXPY_DOUBLE)
 
 # FIXME OpenCL
