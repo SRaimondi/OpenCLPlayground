@@ -17,6 +17,8 @@ set(SOURCE_FILES
 
 add_executable(OpenCLPlayground ${SOURCE_FILES})
 
+target_compile_definitions(OpenCLPlayground PUBLIC -DSAXPY_DOUBLE)
+
 # FIXME OpenCL
 target_include_directories(OpenCLPlayground PUBLIC $ENV{CUDA_PATH}/include)
 target_link_libraries(OpenCLPlayground PUBLIC $ENV{CUDA_PATH}/lib/x64/OpenCL.lib)

@@ -10,7 +10,34 @@
 
 namespace demo {
 
+    // Utility trait to convert type to string
+    template <typename T>
+    struct TypeToString;
+
+    template <>
+    struct TypeToString<float> {
+        static std::string GetString() CXX_NOEXCEPT {
+            return "float";
+        }
+    };
+
+    template <>
+    struct TypeToString<double> {
+        static std::string GetString() CXX_NOEXCEPT {
+            return "double";
+        }
+    };
+
     void SAXPYDemo(cl_platform_id platform, cl_device_id device, unsigned long vector_size) {
+#ifdef SAXPY_DOUBLE
+        using real = double;
+#else
+        using real = float;
+#endif
+
+        // Compute size of data
+        const size_t data_size = vector_size * sizeof(real);
+
         // Create context
         cl_int err_code = CL_SUCCESS;
         const cl_context_properties context_properties[3] = {
@@ -27,7 +54,9 @@ namespace demo {
         sources.push_back(cl::utils::ReadFile("../kernels/saxpy.cl"));
 
         // Create program
-        cl_program program = cl::utils::CreateProgram(context, device, sources, "-cl-std=CL1.2", true);
+        std::string compile_op("-cl-std=CL1.2 -D TYPE=");
+        compile_op.append(TypeToString<real>::GetString());
+        cl_program program = cl::utils::CreateProgram(context, device, sources, compile_op, true);
         if (!program) {
             clReleaseContext(context);
             return;
@@ -44,45 +73,45 @@ namespace demo {
         // Create some data to feed to the kernel
         cl_mem d_x = clCreateBuffer(context,
                                     CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY,
-                                    vector_size * sizeof(float),
+                                    data_size,
                                     nullptr,
                                     &err_code);
         CHECK_CL(err_code);
         cl_mem d_y = clCreateBuffer(context,
                                     CL_MEM_READ_WRITE,
-                                    vector_size * sizeof(float),
+                                    data_size,
                                     nullptr,
                                     &err_code);
         CHECK_CL(err_code);
 
         // Map memory regions
-        auto h_map_x = reinterpret_cast<float*>(clEnqueueMapBuffer(command_queue,
-                                                                   d_x,
-                                                                   CL_TRUE,
-                                                                   CL_MAP_WRITE,
-                                                                   0,
-                                                                   vector_size * sizeof(float),
-                                                                   0,
-                                                                   nullptr,
-                                                                   nullptr,
-                                                                   &err_code));
+        auto h_map_x = reinterpret_cast<real*>(clEnqueueMapBuffer(command_queue,
+                                                                  d_x,
+                                                                  CL_TRUE,
+                                                                  CL_MAP_WRITE,
+                                                                  0,
+                                                                  data_size,
+                                                                  0,
+                                                                  nullptr,
+                                                                  nullptr,
+                                                                  &err_code));
         CHECK_CL(err_code);
-        auto h_map_y = reinterpret_cast<float*>(clEnqueueMapBuffer(command_queue,
-                                                                   d_y,
-                                                                   CL_TRUE,
-                                                                   CL_MAP_WRITE,
-                                                                   0,
-                                                                   vector_size * sizeof(float),
-                                                                   0,
-                                                                   nullptr,
-                                                                   nullptr,
-                                                                   &err_code));
+        auto h_map_y = reinterpret_cast<real*>(clEnqueueMapBuffer(command_queue,
+                                                                  d_y,
+                                                                  CL_TRUE,
+                                                                  CL_MAP_WRITE,
+                                                                  0,
+                                                                  data_size,
+                                                                  0,
+                                                                  nullptr,
+                                                                  nullptr,
+                                                                  &err_code));
         CHECK_CL(err_code);
 
         // Just some random values that are used in the expression and when we check the result
-        const float x_value = 2.f;
-        const float y_value = 3.f;
-        const float a_value = 4.f;
+        const real x_value = 2;
+        const real y_value = 3;
+        const real a_value = 4;
 
         // Now that we have our memory mapped, we can write to it
         for (unsigned long i = 0; i < vector_size; ++i) {
@@ -98,7 +127,7 @@ namespace demo {
         // Setup argument for the kernel
         CHECK_CL(clSetKernelArg(saxpy_kernel, 0, sizeof(cl_mem), &d_x));
         CHECK_CL(clSetKernelArg(saxpy_kernel, 1, sizeof(cl_mem), &d_y));
-        CHECK_CL(clSetKernelArg(saxpy_kernel, 2, sizeof(float), &a_value));
+        CHECK_CL(clSetKernelArg(saxpy_kernel, 2, sizeof(real), &a_value));
         CHECK_CL(clSetKernelArg(saxpy_kernel, 3, sizeof(vector_size), &vector_size));
 
         size_t kernel_wg_size;
@@ -133,16 +162,16 @@ namespace demo {
                                         &kernel_event));
 
         // Read back result to host
-        h_map_y = reinterpret_cast<float*>(clEnqueueMapBuffer(command_queue,
-                                                              d_y,
-                                                              CL_TRUE,
-                                                              CL_MAP_READ,
-                                                              0,
-                                                              vector_size * sizeof(float),
-                                                              1,
-                                                              &kernel_event,
-                                                              nullptr,
-                                                              &err_code));
+        h_map_y = reinterpret_cast<real*>(clEnqueueMapBuffer(command_queue,
+                                                             d_y,
+                                                             CL_TRUE,
+                                                             CL_MAP_READ,
+                                                             0,
+                                                             data_size,
+                                                             1,
+                                                             &kernel_event,
+                                                             nullptr,
+                                                             &err_code));
         CHECK_CL(err_code);
 
         // Check result
