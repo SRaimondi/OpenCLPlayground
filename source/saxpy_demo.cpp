@@ -175,13 +175,14 @@ namespace demo {
         CHECK_CL(err_code);
 
         // Check result
+        bool result_is_correct = true;
         for (unsigned long i = 0; i < vector_size; ++i) {
             if (h_map_y[i] != y_value + a_value * x_value) {
-                std::cerr << "Error in computation result\n";
+                result_is_correct = false;
                 break;
             }
         }
-        std::cout << "Result is correct!\n";
+        std::cout << "Result is " << (result_is_correct ? "correct" : "incorrect") << "!\n";
 
         // Unmap
         CHECK_CL(clEnqueueUnmapMemObject(command_queue, d_y, h_map_y, 0, nullptr, nullptr));
