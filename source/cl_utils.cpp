@@ -53,11 +53,12 @@ namespace cl {
             CHECK_CL(err_code);
 
             // Try to build the program
-            err_code = clBuildProgram(program, 1, &device, build_options.c_str(), nullptr, nullptr);
+            const bool build_ok = CHECK_CL(
+                    clBuildProgram(program, 1, &device, build_options.c_str(), nullptr, nullptr));
 
             // If there are errors, get the log and print it
-            if (err_code != CL_SUCCESS || verbose) {
-                if (err_code != CL_SUCCESS) {
+            if (!build_ok || verbose) {
+                if (!build_ok) {
                     std::cout << "#### Program build failed ####\n";
                 } else {
                     std::cout << "#### Program build log ####\n";
