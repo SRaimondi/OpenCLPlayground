@@ -11,7 +11,6 @@
 namespace demo {
 
     void SAXPYDemo(cl_platform_id platform, cl_device_id device, unsigned long vector_size) {
-
         // Compute size of data
         const size_t data_size = vector_size * sizeof(float);
 
@@ -24,6 +23,10 @@ namespace demo {
                                              1, &device,
                                              cl::utils::ContextCallback, nullptr,
                                              &err_code);
+        CHECK_CL(err_code);
+
+        // Create command queue
+        cl_command_queue command_queue = clCreateCommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE, &err_code);
         CHECK_CL(err_code);
 
         // Load program sources
@@ -40,10 +43,6 @@ namespace demo {
 
         // Create kernel
         cl_kernel saxpy_kernel = clCreateKernel(program, "SAXPY", &err_code);
-        CHECK_CL(err_code);
-
-        // Create command queue
-        cl_command_queue command_queue = clCreateCommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE, &err_code);
         CHECK_CL(err_code);
 
         // Create some data to feed to the kernel
