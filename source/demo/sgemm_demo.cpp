@@ -174,10 +174,10 @@ namespace demo {
 
         // Check result
         float result = 0.f;
-            for (unsigned long i = 1; i < matrix_size; ++i) {
+        for (unsigned long i = 1; i < matrix_size; ++i) {
             result += i * i;
         }
-            result = alpha * result + beta * c_value;
+        result = alpha * result + beta * c_value;
 
         bool result_is_correct = true;
         for (unsigned long j = 0; j < matrix_size; ++j) {
@@ -189,6 +189,15 @@ namespace demo {
             }
         }
         std::cout << "Result is " << (result_is_correct ? "correct" : "incorrect") << "!\n";
+
+        // Print kernel execution time
+        cl_ulong kernel_start, kernel_end;
+        CHECK_CL(clGetEventProfilingInfo(kernel_event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &kernel_start,
+                                         nullptr));
+        CHECK_CL(clGetEventProfilingInfo(kernel_event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &kernel_end,
+                                         nullptr));
+
+        std::cout << "Kernel execution took " << kernel_end - kernel_start << " ns\n";
 
         // Unmap
         CHECK_CL(clEnqueueUnmapMemObject(command_queue, d_C, h_map_C, 0, nullptr, nullptr));
