@@ -69,7 +69,7 @@ int main() {
 
     // Call code from different demos based on the selected one
 //    demo::SAXPYDemo(platform, device, 1000000);
-    demo::SGEMMDEmo(platform, device, 1024);
+    demo::SGEMMDEmo(platform, device, 4096);
 
     // Cleanup
     for (auto& dev : devices) {

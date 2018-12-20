@@ -11,7 +11,7 @@ __kernel void SGEMM_0(  unsigned long M, unsigned long N, unsigned long K,
                         float beta,
                         __global float* c, unsigned long LDC) {
 	// Each thread is resposible for computing an element of the output matrix
-	
+
 	// Get global row and column
 	const size_t row = get_global_id(0);
 	const size_t col = get_global_id(1);
@@ -23,6 +23,7 @@ __kernel void SGEMM_0(  unsigned long M, unsigned long N, unsigned long K,
 			row_col_dot += A(row, k) * B(k, col); 
 		}
 
+		// Store result
 		C(row, col) = alpha * row_col_dot + beta * C(row, col);
 	}
 }

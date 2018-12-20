@@ -174,9 +174,10 @@ namespace demo {
 
         // Check result
         float result = 0.f;
-        for (unsigned long i = 0; i < matrix_size; ++i) {
+            for (unsigned long i = 1; i < matrix_size; ++i) {
             result += i * i;
         }
+            result = alpha * result + beta * c_value;
 
         bool result_is_correct = true;
         for (unsigned long j = 0; j < matrix_size; ++j) {
