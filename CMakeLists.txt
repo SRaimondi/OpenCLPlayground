@@ -7,22 +7,21 @@ if (${CMAKE_HOST_SYSTEM_NAME} MATCHES Darwin)
     find_package(OpenCL REQUIRED)
 endif()
 
-include_directories(source)
+include_directories(source
+        source/cl
+        source/demo)
 
 set(SOURCE_FILES
         source/main.cpp
-        source/cl_error.cpp
-        source/cl_error.hpp
+        source/cl/cl_error.cpp
+        source/cl/cl_error.hpp
         source/config.hpp
-        source/cl_utils.cpp
-        source/cl_utils.hpp
-        source/saxpy_demo.cpp
-        source/saxpy_demo.hpp)
+        source/cl/cl_utils.cpp
+        source/cl/cl_utils.hpp
+        source/demo/saxpy_demo.cpp
+        source/demo/saxpy_demo.hpp source/demo/sgemm_demo.cpp source/demo/sgemm_demo.hpp)
 
 add_executable(OpenCLPlayground ${SOURCE_FILES})
-
-# Uncomment this to execute the SAXPY demo using double instead of float
-# target_compile_definitions(OpenCLPlayground PUBLIC -DSAXPY_DOUBLE)
 
 # FIXME OpenCL
 if (${CMAKE_HOST_SYSTEM_NAME} MATCHES Darwin)
