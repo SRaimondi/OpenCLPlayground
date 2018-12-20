@@ -1,6 +1,7 @@
 #include "cl_error.hpp"
 #include "cl_utils.hpp"
 #include "saxpy_demo.hpp"
+#include "sgemm_demo.hpp"
 
 #include <vector>
 #include <iostream>
@@ -67,7 +68,8 @@ int main() {
     cl_device_id device = devices[selected_device_index];
 
     // Call code from different demos based on the selected one
-    demo::SAXPYDemo(platform, device, 1000000);
+//    demo::SAXPYDemo(platform, device, 1000000);
+    demo::SGEMMDEmo(platform, device, 1024);
 
     // Cleanup
     for (auto& dev : devices) {

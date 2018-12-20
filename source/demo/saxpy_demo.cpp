@@ -34,8 +34,7 @@ namespace demo {
         sources.push_back(cl::utils::ReadFile("../kernels/saxpy.cl"));
 
         // Create program
-        std::string compile_op("-cl-std=CL1.2");
-        cl_program program = cl::utils::CreateProgram(context, device, sources, compile_op, true);
+            cl_program program = cl::utils::CreateProgram(context, device, sources, "-cl-std=CL1.2", true);
         if (!program) {
             clReleaseContext(context);
             return;
@@ -52,6 +51,7 @@ namespace demo {
                                     nullptr,
                                     &err_code);
         CHECK_CL(err_code);
+
         cl_mem d_y = clCreateBuffer(context,
                                     CL_MEM_READ_WRITE,
                                     data_size,
@@ -136,7 +136,7 @@ namespace demo {
                                         unmap_events,
                                         &kernel_event));
 
-        // Read back result to host
+            // Map result to read on the host
         h_map_y = reinterpret_cast<float *>(clEnqueueMapBuffer(command_queue,
                                                                d_y,
                                                                CL_TRUE,
