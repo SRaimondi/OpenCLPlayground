@@ -187,6 +187,9 @@ namespace demo {
         // Unmap
         CHECK_CL(clEnqueueUnmapMemObject(command_queue, d_y, h_map_y, 0, nullptr, nullptr));
 
+        // Wait for all commands to finish
+        CHECK_CL(clFinish(command_queue));
+
         // Cleanup
         clReleaseMemObject(d_y);
         clReleaseMemObject(d_x);
