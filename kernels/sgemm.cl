@@ -90,6 +90,6 @@ __kernel void SGEMM_1(  unsigned int M, unsigned int N, unsigned int K,
 
 	if (row < M && col < N) {
 		// Set computed value in output matrix
-		C(row, col) = alpha * sum + beta * C(row, col);
+		C(row, col) = alpha + beta * C(row, col);
 	}
 }
