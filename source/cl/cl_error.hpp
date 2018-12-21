@@ -13,7 +13,9 @@
 
 // External
 #ifdef __APPLE__
+
 #include <OpenCL/opencl.h>
+
 #else
 #include <CL/opencl.h>
 #endif

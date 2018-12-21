@@ -34,7 +34,7 @@ namespace demo {
         sources.push_back(cl::utils::ReadFile("../kernels/saxpy.cl"));
 
         // Create program
-            cl_program program = cl::utils::CreateProgram(context, device, sources, "-cl-std=CL1.2", true);
+        cl_program program = cl::utils::CreateProgram(context, device, sources, "-cl-std=CL1.2", true);
         if (!program) {
             clReleaseContext(context);
             return;
@@ -60,27 +60,27 @@ namespace demo {
         CHECK_CL(err_code);
 
         // Map memory regions
-        auto h_map_x = reinterpret_cast<float *>(clEnqueueMapBuffer(command_queue,
-                                                                    d_x,
-                                                                    CL_TRUE,
-                                                                    CL_MAP_WRITE,
-                                                                    0,
-                                                                    data_size,
-                                                                    0,
-                                                                    nullptr,
-                                                                    nullptr,
-                                                                    &err_code));
+        auto h_map_x = reinterpret_cast<float*>(clEnqueueMapBuffer(command_queue,
+                                                                   d_x,
+                                                                   CL_TRUE,
+                                                                   CL_MAP_WRITE,
+                                                                   0,
+                                                                   data_size,
+                                                                   0,
+                                                                   nullptr,
+                                                                   nullptr,
+                                                                   &err_code));
         CHECK_CL(err_code);
-        auto h_map_y = reinterpret_cast<float *>(clEnqueueMapBuffer(command_queue,
-                                                                    d_y,
-                                                                    CL_TRUE,
-                                                                    CL_MAP_WRITE,
-                                                                    0,
-                                                                    data_size,
-                                                                    0,
-                                                                    nullptr,
-                                                                    nullptr,
-                                                                    &err_code));
+        auto h_map_y = reinterpret_cast<float*>(clEnqueueMapBuffer(command_queue,
+                                                                   d_y,
+                                                                   CL_TRUE,
+                                                                   CL_MAP_WRITE,
+                                                                   0,
+                                                                   data_size,
+                                                                   0,
+                                                                   nullptr,
+                                                                   nullptr,
+                                                                   &err_code));
         CHECK_CL(err_code);
 
         // Just some random values that are used in the expression and when we check the result
@@ -136,17 +136,17 @@ namespace demo {
                                         unmap_events,
                                         &kernel_event));
 
-            // Map result to read on the host
-        h_map_y = reinterpret_cast<float *>(clEnqueueMapBuffer(command_queue,
-                                                               d_y,
-                                                               CL_TRUE,
-                                                               CL_MAP_READ,
-                                                               0,
-                                                               data_size,
-                                                               1,
-                                                               &kernel_event,
-                                                               nullptr,
-                                                               &err_code));
+        // Map result to read on the host
+        h_map_y = reinterpret_cast<float*>(clEnqueueMapBuffer(command_queue,
+                                                              d_y,
+                                                              CL_TRUE,
+                                                              CL_MAP_READ,
+                                                              0,
+                                                              data_size,
+                                                              1,
+                                                              &kernel_event,
+                                                              nullptr,
+                                                              &err_code));
         CHECK_CL(err_code);
 
         // Check result

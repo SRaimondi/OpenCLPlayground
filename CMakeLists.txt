@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 14)
 
 if (${CMAKE_HOST_SYSTEM_NAME} MATCHES Darwin)
     find_package(OpenCL REQUIRED)
-endif()
+endif ()
 
 include_directories(source
         source/cl
@@ -28,7 +28,7 @@ if (${CMAKE_HOST_SYSTEM_NAME} MATCHES Darwin)
     # Silence depracations on OSX
     target_compile_definitions(OpenCLPlayground PRIVATE -DCL_SILENCE_DEPRECATION)
     target_link_libraries(OpenCLPlayground OpenCL::OpenCL)
-else()
+else ()
     target_include_directories(OpenCLPlayground PUBLIC $ENV{CUDA_PATH}/include)
     target_link_libraries(OpenCLPlayground PUBLIC $ENV{CUDA_PATH}/lib/x64/OpenCL.lib)
-endif()
+endif ()

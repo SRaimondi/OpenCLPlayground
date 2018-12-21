@@ -6,7 +6,9 @@
 #define OPENCLPLAYGROUND_SAXPY_DEMO_HPP
 
 #ifdef __APPLE__
+
 #include <OpenCL/opencl.h>
+
 #else
 #include <CL/opencl.h>
 #endif

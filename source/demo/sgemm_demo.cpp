@@ -69,40 +69,40 @@ namespace demo {
         CHECK_CL(err_code);
 
         // Map memory regions
-        auto h_map_A = reinterpret_cast<float *>(clEnqueueMapBuffer(command_queue,
-                                                                    d_A,
-                                                                    CL_TRUE,
-                                                                    CL_MAP_WRITE,
-                                                                    0,
-                                                                    data_size,
-                                                                    0,
-                                                                    nullptr,
-                                                                    nullptr,
-                                                                    &err_code));
+        auto h_map_A = reinterpret_cast<float*>(clEnqueueMapBuffer(command_queue,
+                                                                   d_A,
+                                                                   CL_TRUE,
+                                                                   CL_MAP_WRITE,
+                                                                   0,
+                                                                   data_size,
+                                                                   0,
+                                                                   nullptr,
+                                                                   nullptr,
+                                                                   &err_code));
         CHECK_CL(err_code);
 
-        auto h_map_B = reinterpret_cast<float *>(clEnqueueMapBuffer(command_queue,
-                                                                    d_B,
-                                                                    CL_TRUE,
-                                                                    CL_MAP_WRITE,
-                                                                    0,
-                                                                    data_size,
-                                                                    0,
-                                                                    nullptr,
-                                                                    nullptr,
-                                                                    &err_code));
+        auto h_map_B = reinterpret_cast<float*>(clEnqueueMapBuffer(command_queue,
+                                                                   d_B,
+                                                                   CL_TRUE,
+                                                                   CL_MAP_WRITE,
+                                                                   0,
+                                                                   data_size,
+                                                                   0,
+                                                                   nullptr,
+                                                                   nullptr,
+                                                                   &err_code));
         CHECK_CL(err_code);
 
-        auto h_map_C = reinterpret_cast<float *>(clEnqueueMapBuffer(command_queue,
-                                                                    d_C,
-                                                                    CL_TRUE,
-                                                                    CL_MAP_WRITE,
-                                                                    0,
-                                                                    data_size,
-                                                                    0,
-                                                                    nullptr,
-                                                                    nullptr,
-                                                                    &err_code));
+        auto h_map_C = reinterpret_cast<float*>(clEnqueueMapBuffer(command_queue,
+                                                                   d_C,
+                                                                   CL_TRUE,
+                                                                   CL_MAP_WRITE,
+                                                                   0,
+                                                                   data_size,
+                                                                   0,
+                                                                   nullptr,
+                                                                   nullptr,
+                                                                   &err_code));
         CHECK_CL(err_code);
 
         // Fill matrices
@@ -160,16 +160,16 @@ namespace demo {
                                         &kernel_event));
 
         // Map result to read on the host
-        h_map_C = reinterpret_cast<float *>(clEnqueueMapBuffer(command_queue,
-                                                               d_C,
-                                                               CL_TRUE,
-                                                               CL_MAP_READ,
-                                                               0,
-                                                               data_size,
-                                                               1,
-                                                               &kernel_event,
-                                                               nullptr,
-                                                               &err_code));
+        h_map_C = reinterpret_cast<float*>(clEnqueueMapBuffer(command_queue,
+                                                              d_C,
+                                                              CL_TRUE,
+                                                              CL_MAP_READ,
+                                                              0,
+                                                              data_size,
+                                                              1,
+                                                              &kernel_event,
+                                                              nullptr,
+                                                              &err_code));
         CHECK_CL(err_code);
 
         // Check result
