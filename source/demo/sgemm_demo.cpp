@@ -43,7 +43,9 @@ namespace demo {
         }
 
         // Create kernel
-        cl_kernel sgemm_kernel = clCreateKernel(program, "SGEMM_0", &err_code);
+        cl_kernel sgemm0_kernel = clCreateKernel(program, "SGEMM_0", &err_code);
+        CHECK_CL(err_code);
+        cl_kernel sgemm1_kernel = clCreateKernel(program, "SGEMM_1", &err_code);
         CHECK_CL(err_code);
 
         // Create some data to feed to the kernel
@@ -128,20 +130,23 @@ namespace demo {
         const float alpha = 1.f;
         const float beta = 1.f;
         // Set matrices sizes
-        CHECK_CL(clSetKernelArg(sgemm_kernel, 0, sizeof(unsigned long), &matrix_size));
-        CHECK_CL(clSetKernelArg(sgemm_kernel, 1, sizeof(unsigned long), &matrix_size));
-        CHECK_CL(clSetKernelArg(sgemm_kernel, 2, sizeof(unsigned long), &matrix_size));
+        CHECK_CL(clSetKernelArg(sgemm0_kernel, 0, sizeof(unsigned long), &matrix_size));
+        CHECK_CL(clSetKernelArg(sgemm0_kernel, 1, sizeof(unsigned long), &matrix_size));
+        CHECK_CL(clSetKernelArg(sgemm0_kernel, 2, sizeof(unsigned long), &matrix_size));
         // Set alpha value for C = alpha * A * B + beta * C
-        CHECK_CL(clSetKernelArg(sgemm_kernel, 3, sizeof(float), &alpha));
-        CHECK_CL(clSetKernelArg(sgemm_kernel, 4, sizeof(cl_mem), &d_A));
-        CHECK_CL(clSetKernelArg(sgemm_kernel, 5, sizeof(unsigned long), &matrix_size));
-        CHECK_CL(clSetKernelArg(sgemm_kernel, 6, sizeof(cl_mem), &d_B));
-        CHECK_CL(clSetKernelArg(sgemm_kernel, 7, sizeof(unsigned long), &matrix_size));
-        CHECK_CL(clSetKernelArg(sgemm_kernel, 8, sizeof(float), &beta));
-        CHECK_CL(clSetKernelArg(sgemm_kernel, 9, sizeof(cl_mem), &d_C));
-        CHECK_CL(clSetKernelArg(sgemm_kernel, 10, sizeof(unsigned long), &matrix_size));
+        CHECK_CL(clSetKernelArg(sgemm0_kernel, 3, sizeof(float), &alpha));
+        CHECK_CL(clSetKernelArg(sgemm0_kernel, 4, sizeof(cl_mem), &d_A));
+        CHECK_CL(clSetKernelArg(sgemm0_kernel, 5, sizeof(unsigned long), &matrix_size));
+        CHECK_CL(clSetKernelArg(sgemm0_kernel, 6, sizeof(cl_mem), &d_B));
+        CHECK_CL(clSetKernelArg(sgemm0_kernel, 7, sizeof(unsigned long), &matrix_size));
+        CHECK_CL(clSetKernelArg(sgemm0_kernel, 8, sizeof(float), &beta));
+        CHECK_CL(clSetKernelArg(sgemm0_kernel, 9, sizeof(cl_mem), &d_C));
+        CHECK_CL(clSetKernelArg(sgemm0_kernel, 10, sizeof(unsigned long), &matrix_size));
 
-        // FIXME Setup launch sizes
+        // Change this define to change the kernel to use
+#define SIMPLE_SGEMM
+
+#ifdef SIMPLE_SGEMM
         std::size_t local_size[2] = {16, 16};
         std::size_t global_size[2];
         global_size[0] = cl::utils::DivideUp(matrix_size, local_size[0]) * local_size[0];
@@ -150,7 +155,7 @@ namespace demo {
         // Launch kernel
         cl_event kernel_event;
         CHECK_CL(clEnqueueNDRangeKernel(command_queue,
-                                        sgemm_kernel,
+                                        sgemm0_kernel,
                                         2,
                                         nullptr,
                                         global_size,
@@ -158,6 +163,24 @@ namespace demo {
                                         2,
                                         unmap_events,
                                         &kernel_event));
+#else
+        std::size_t local_size[2] = {16, 16};
+        std::size_t global_size[2];
+        global_size[0] = cl::utils::DivideUp(matrix_size, local_size[0]) * local_size[0];
+        global_size[1] = cl::utils::DivideUp(matrix_size, local_size[1]) * local_size[1];
+
+        // Launch kernel
+        cl_event kernel_event;
+        CHECK_CL(clEnqueueNDRangeKernel(command_queue,
+                                        sgemm0_kernel,
+                                        2,
+                                        nullptr,
+                                        global_size,
+                                        local_size,
+                                        2,
+                                        unmap_events,
+                                        &kernel_event));
+#endif
 
         // Map result to read on the host
         h_map_C = reinterpret_cast<float*>(clEnqueueMapBuffer(command_queue,
@@ -209,7 +232,7 @@ namespace demo {
         clReleaseMemObject(d_C);
         clReleaseMemObject(d_B);
         clReleaseMemObject(d_A);
-        clReleaseKernel(sgemm_kernel);
+        clReleaseKernel(sgemm0_kernel);
         clReleaseProgram(program);
         clReleaseCommandQueue(command_queue);
         clReleaseContext(context);
