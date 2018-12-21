@@ -23,6 +23,8 @@ set(SOURCE_FILES
 
 add_executable(OpenCLPlayground ${SOURCE_FILES})
 
+#target_compile_definitions(OpenCLPlayground PRIVATE -DSGEMM_BASE)
+
 # FIXME OpenCL
 if (${CMAKE_HOST_SYSTEM_NAME} MATCHES Darwin)
     # Silence depracations on OSX

@@ -16,7 +16,7 @@
 namespace demo {
 
     // Run the different sgemm kernels depending on the compile flags
-    void SGEMMDEmo(cl_platform_id platform, cl_device_id device, unsigned long matrix_size = 4096);
+    void SGEMMDemo(cl_platform_id platform, cl_device_id device, unsigned int matrix_size = 4096);
 
 } // demo namespace
 

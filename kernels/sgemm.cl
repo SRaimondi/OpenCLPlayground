@@ -4,12 +4,12 @@
 #define C(i, j) c[(i) + (j) * LDC]
 
 // Simple base version of multiplication kernel
-__kernel void SGEMM_0(  unsigned long M, unsigned long N, unsigned long K,
+__kernel void SGEMM_0(  unsigned int M, unsigned int N, unsigned int K,
                         float alpha,
-                        __global const float* a, unsigned long LDA,
-                        __global const float* b, unsigned long LDB,
+                        __global const float* a, unsigned int LDA,
+                        __global const float* b, unsigned int LDB,
                         float beta,
-                        __global float* c, unsigned long LDC) {
+                        __global float* c, unsigned int LDC) {
 	// Each thread is resposible for computing an element of the output matrix
 
 	// Get global row and column
@@ -19,7 +19,7 @@ __kernel void SGEMM_0(  unsigned long M, unsigned long N, unsigned long K,
 	if (row < M && col < N) {
 		float row_col_dot = 0.f;
 		// Compute sum
-		for (unsigned long k = 0; k < K; ++k) {
+		for (unsigned int k = 0; k < K; ++k) {
 			row_col_dot += A(row, k) * B(k, col); 
 		}
 		// Store result
@@ -33,20 +33,63 @@ __kernel void SGEMM_0(  unsigned long M, unsigned long N, unsigned long K,
 #define SB(i, j) shared_b[(i) + (j) * BLOCK_SIZE]
 
 // More advacned version of SGEMM that makes use of local memory to accelerate access to matrix data
-__kernel void SGEMM_1(  unsigned long M, unsigned long N, unsigned long K,
+__kernel void SGEMM_1(  unsigned int M, unsigned int N, unsigned int K,
                         float alpha,
-                        __global const float* a, unsigned long LDA,
-                        __global const float* b, unsigned long LDB,
+                        __global const float* a, unsigned int LDA,
+                        __global const float* b, unsigned int LDB,
                         float beta,
-                        __global float* c, unsigned long LDC,
+                        __global float* c, unsigned int LDC,
                         __local float* shared_a,
                         __local float* shared_b) {
-	// Get thread id in work group and global row and column
-	const size_t t_row = get_local_id(0);
-	const size_t t_col = get_local_id(1);
+	// Again each thread is resposible for computing an element of the output matrix
+
+	// Initialise product of A's row and B's column
+	float sum = 0.f;
+
+	// Get local index and work group index
+	const size_t local_row = get_local_id(0);
+	const size_t local_col = get_local_id(1);
+	const size_t wg_row = get_group_id(0);
+	const size_t wg_col = get_group_id(1);
+
+	// Compute starting row for block in matrix A
+	const size_t A_start_row = wg_row * BLOCK_SIZE;
+	const size_t B_start_col = wg_col * BLOCK_SIZE;
+
+	// Loop over all the tiles 
+	const unsigned int num_tiles = (K + BLOCK_SIZE - 1) / BLOCK_SIZE;
+	for (unsigned int tile = 0; tile < num_tiles; ++tile) {
+		// Compute the row and the column that we need to load from the matrices
+		const size_t a_row = A_start_row + local_row;
+		const size_t a_col = tile * BLOCK_SIZE + local_col;
+		const size_t b_row = tile * BLOCK_SIZE + local_row;
+		const size_t b_col = B_start_col + local_col;
+
+		if (a_row < M && a_col < K && b_row < K && b_col < N) {
+			// Load values into local memory
+			SA(local_row, local_col) = A(A_start_row + local_row, tile * BLOCK_SIZE + local_col);
+			SB(local_row, local_col) = B(tile * BLOCK_SIZE + local_row, B_start_col + local_col);
+		}
+		// Wait for all threads in workgroup to finish 
+		barrier(CLK_LOCAL_MEM_FENCE);
+
+		// Multiply row of SA with column of BS and accumulate
+		for (unsigned int k = 0; k < BLOCK_SIZE; ++k) {
+			if (k < tile * BLOCK_SIZE) {
+				sum += SA(local_row, k) * SB(k, local_col);
+			}
+		}
+
+		// Synchronise again to make sure that all computations are done before loading new tiles
+		barrier(CLK_LOCAL_MEM_FENCE);
+	}
+
+	// Get global thread id
 	const size_t row = get_global_id(0);
 	const size_t col = get_global_id(1);
 
-	
-
+	if (row < M && col < N) {
+		// Set computed value in output matrix
+		C(row, col) = alpha * sum + beta * C(row, col);
+	}
 }

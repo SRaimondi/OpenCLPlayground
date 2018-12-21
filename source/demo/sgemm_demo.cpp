@@ -11,7 +11,7 @@
 
 namespace demo {
 
-    void SGEMMDEmo(cl_platform_id platform, cl_device_id device, unsigned long matrix_size) {
+    void SGEMMDemo(cl_platform_id platform, cl_device_id device, unsigned int matrix_size) {
         // Compute size of data
         const size_t data_size = matrix_size * matrix_size * sizeof(float);
 
@@ -35,7 +35,7 @@ namespace demo {
         sources.push_back(cl::utils::ReadFile("../kernels/sgemm.cl"));
 
         // Create program
-        cl_program program = cl::utils::CreateProgram(context, device, sources, "-cl-std=CL1.2", true);
+        cl_program program = cl::utils::CreateProgram(context, device, sources, "-cl-std=CL1.2 -D BLOCK_SIZE=16", true);
         if (!program) {
             clReleaseCommandQueue(command_queue);
             clReleaseContext(context);
@@ -43,9 +43,11 @@ namespace demo {
         }
 
         // Create kernel
-        cl_kernel sgemm0_kernel = clCreateKernel(program, "SGEMM_0", &err_code);
-        CHECK_CL(err_code);
-        cl_kernel sgemm1_kernel = clCreateKernel(program, "SGEMM_1", &err_code);
+#ifdef SGEMM_BASE
+        cl_kernel sgemm_kernel = clCreateKernel(program, "SGEMM_0", &err_code);
+#else
+        cl_kernel sgemm_kernel = clCreateKernel(program, "SGEMM_1", &err_code);
+#endif
         CHECK_CL(err_code);
 
         // Create some data to feed to the kernel
@@ -109,8 +111,8 @@ namespace demo {
 
         // Fill matrices
         const float c_value = 1.f;
-        for (unsigned long j = 0; j < matrix_size; ++j) {
-            for (unsigned long i = 0; i < matrix_size; ++i) {
+        for (unsigned int j = 0; j < matrix_size; ++j) {
+            for (unsigned int i = 0; i < matrix_size; ++i) {
                 // Matrix A stores the column index
                 h_map_A[j * matrix_size + i] = j;
                 // Matrix B stores the row index
@@ -130,23 +132,25 @@ namespace demo {
         const float alpha = 1.f;
         const float beta = 1.f;
         // Set matrices sizes
-        CHECK_CL(clSetKernelArg(sgemm0_kernel, 0, sizeof(unsigned long), &matrix_size));
-        CHECK_CL(clSetKernelArg(sgemm0_kernel, 1, sizeof(unsigned long), &matrix_size));
-        CHECK_CL(clSetKernelArg(sgemm0_kernel, 2, sizeof(unsigned long), &matrix_size));
+        CHECK_CL(clSetKernelArg(sgemm_kernel, 0, sizeof(unsigned int), &matrix_size));
+        CHECK_CL(clSetKernelArg(sgemm_kernel, 1, sizeof(unsigned int), &matrix_size));
+        CHECK_CL(clSetKernelArg(sgemm_kernel, 2, sizeof(unsigned int), &matrix_size));
         // Set alpha value for C = alpha * A * B + beta * C
-        CHECK_CL(clSetKernelArg(sgemm0_kernel, 3, sizeof(float), &alpha));
-        CHECK_CL(clSetKernelArg(sgemm0_kernel, 4, sizeof(cl_mem), &d_A));
-        CHECK_CL(clSetKernelArg(sgemm0_kernel, 5, sizeof(unsigned long), &matrix_size));
-        CHECK_CL(clSetKernelArg(sgemm0_kernel, 6, sizeof(cl_mem), &d_B));
-        CHECK_CL(clSetKernelArg(sgemm0_kernel, 7, sizeof(unsigned long), &matrix_size));
-        CHECK_CL(clSetKernelArg(sgemm0_kernel, 8, sizeof(float), &beta));
-        CHECK_CL(clSetKernelArg(sgemm0_kernel, 9, sizeof(cl_mem), &d_C));
-        CHECK_CL(clSetKernelArg(sgemm0_kernel, 10, sizeof(unsigned long), &matrix_size));
+        CHECK_CL(clSetKernelArg(sgemm_kernel, 3, sizeof(float), &alpha));
+        CHECK_CL(clSetKernelArg(sgemm_kernel, 4, sizeof(cl_mem), &d_A));
+        CHECK_CL(clSetKernelArg(sgemm_kernel, 5, sizeof(unsigned int), &matrix_size));
+        CHECK_CL(clSetKernelArg(sgemm_kernel, 6, sizeof(cl_mem), &d_B));
+        CHECK_CL(clSetKernelArg(sgemm_kernel, 7, sizeof(unsigned int), &matrix_size));
+        CHECK_CL(clSetKernelArg(sgemm_kernel, 8, sizeof(float), &beta));
+        CHECK_CL(clSetKernelArg(sgemm_kernel, 9, sizeof(cl_mem), &d_C));
+        CHECK_CL(clSetKernelArg(sgemm_kernel, 10, sizeof(unsigned int), &matrix_size));
 
-        // Change this define to change the kernel to use
-#define SIMPLE_SGEMM
+#ifndef SGEMM_BASE
+        CHECK_CL(clSetKernelArg(sgemm_kernel, 11, 16 * 16 * sizeof(float), nullptr));
+        CHECK_CL(clSetKernelArg(sgemm_kernel, 12, 16 * 16 * sizeof(float), nullptr));
+#endif
 
-#ifdef SIMPLE_SGEMM
+#ifdef SGEMM_BASE
         std::size_t local_size[2] = {16, 16};
         std::size_t global_size[2];
         global_size[0] = cl::utils::DivideUp(matrix_size, local_size[0]) * local_size[0];
@@ -155,7 +159,7 @@ namespace demo {
         // Launch kernel
         cl_event kernel_event;
         CHECK_CL(clEnqueueNDRangeKernel(command_queue,
-                                        sgemm0_kernel,
+                                        sgemm_kernel,
                                         2,
                                         nullptr,
                                         global_size,
@@ -164,6 +168,8 @@ namespace demo {
                                         unmap_events,
                                         &kernel_event));
 #else
+
+
         std::size_t local_size[2] = {16, 16};
         std::size_t global_size[2];
         global_size[0] = cl::utils::DivideUp(matrix_size, local_size[0]) * local_size[0];
@@ -172,7 +178,7 @@ namespace demo {
         // Launch kernel
         cl_event kernel_event;
         CHECK_CL(clEnqueueNDRangeKernel(command_queue,
-                                        sgemm0_kernel,
+                                        sgemm_kernel,
                                         2,
                                         nullptr,
                                         global_size,
@@ -197,14 +203,14 @@ namespace demo {
 
         // Check result
         float result = 0.f;
-        for (unsigned long i = 1; i < matrix_size; ++i) {
+        for (unsigned int i = 1; i < matrix_size; ++i) {
             result += i * i;
         }
         result = alpha * result + beta * c_value;
 
         bool result_is_correct = true;
-        for (unsigned long j = 0; j < matrix_size; ++j) {
-            for (unsigned long i = 0; i < matrix_size; ++i) {
+        for (unsigned int j = 0; j < matrix_size; ++j) {
+            for (unsigned int i = 0; i < matrix_size; ++i) {
                 if (std::abs(h_map_C[j * matrix_size + i] - result) > 0.0001f) {
                     result_is_correct = false;
                     break;
@@ -232,7 +238,7 @@ namespace demo {
         clReleaseMemObject(d_C);
         clReleaseMemObject(d_B);
         clReleaseMemObject(d_A);
-        clReleaseKernel(sgemm0_kernel);
+        clReleaseKernel(sgemm_kernel);
         clReleaseProgram(program);
         clReleaseCommandQueue(command_queue);
         clReleaseContext(context);
