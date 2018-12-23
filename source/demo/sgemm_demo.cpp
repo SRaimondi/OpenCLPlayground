@@ -208,23 +208,23 @@ namespace demo {
         }
         result = alpha * result + beta * c_value;
 
-        for (unsigned int i = 0; i < matrix_size; ++i) {
-            for (unsigned int j = 0; j < matrix_size; ++j) {
-                std::cout << h_map_C[j * matrix_size + i] << " ";
-            }
-            std::cout << "\n";
-        }
-
-//        bool result_is_correct = true;
-//        for (unsigned int j = 0; j < matrix_size; ++j) {
-//            for (unsigned int i = 0; i < matrix_size; ++i) {
-//                if (std::abs(h_map_C[j * matrix_size + i] - result) > 0.0001f) {
-//                    result_is_correct = false;
-//                    break;
-//                }
+//        for (unsigned int i = 0; i < matrix_size; ++i) {
+//            for (unsigned int j = 0; j < matrix_size; ++j) {
+//                std::cout << h_map_C[j * matrix_size + i] << " ";
 //            }
+//            std::cout << "\n";
 //        }
-//        std::cout << "Result is " << (result_is_correct ? "correct" : "incorrect") << "!\n";
+
+        bool result_is_correct = true;
+        for (unsigned int j = 0; j < matrix_size; ++j) {
+            for (unsigned int i = 0; i < matrix_size; ++i) {
+                if (std::abs(h_map_C[j * matrix_size + i] - result) > 0.0001f) {
+                    result_is_correct = false;
+                    break;
+                }
+            }
+        }
+        std::cout << "Result is " << (result_is_correct ? "correct" : "incorrect") << "!\n";
 
         // Print kernel execution time
         cl_ulong kernel_start, kernel_end;

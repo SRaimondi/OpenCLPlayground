@@ -51,6 +51,7 @@ __kernel void SGEMM_1(  unsigned int M, unsigned int N, unsigned int K,
 	const size_t local_col = get_local_id(1);
 	const size_t wg_row = get_group_id(0);
 	const size_t wg_col = get_group_id(1);
+
 	const size_t row = get_global_id(0);
 	const size_t col = get_global_id(1);
 
@@ -60,25 +61,39 @@ __kernel void SGEMM_1(  unsigned int M, unsigned int N, unsigned int K,
 
 	// Loop over all the tiles 
 	const unsigned int num_tiles = (K + BLOCK_SIZE - 1) / BLOCK_SIZE;
-
-	if (row < M && col < N) {
-		C(row, col) = num_tiles;
-	}
-
 	for (unsigned int tile = 0; tile < num_tiles; ++tile) {
-		// Compute the row and the column that we need to load from the matrices
+		// Compute position of the element to load in matrix A and B
 		const size_t a_row = A_start_row + local_row;
 		const size_t a_col = tile * BLOCK_SIZE + local_col;
 		const size_t b_row = tile * BLOCK_SIZE + local_row;
 		const size_t b_col = B_start_col + local_col;
 
-		if (a_row < M && a_col < K && b_row < K && b_col < N) {
-			// Load values into local memory
-			SA(local_row, local_col) = A(A_start_row + local_row, tile * BLOCK_SIZE + local_col);
-			SB(local_row, local_col) = B(tile * BLOCK_SIZE + local_row, B_start_col + local_col);
+		// Test A element
+		if (a_row < M && a_col < K) {
+			SA(local_row, local_col) = A(a_row, a_col);
+		} else {
+			SA(local_row, local_col) = 0.f;
 		}
-		// Wait for all threads in workgroup to finish 
+
+		// Test B element
+		if (b_row < K && b_col < N) {
+			SB(local_row, local_col) = B(b_row, b_col);
+		} else {
+			SB(local_row, local_col) = 0.f;
+		}
+
+		barrier(CLK_LOCAL_MEM_FENCE);
+
+		// Increment sum
+		for (unsigned int k = 0; k < BLOCK_SIZE; ++k) {
+			sum += SA(local_row, k) * SB(k, local_col);
+		}
+
 		barrier(CLK_LOCAL_MEM_FENCE);
 	}
 
+	// Store sum
+	if (row < M && col < N) {
+		C(row, col) = alpha * sum + beta * C(row, col);
+	}
 }
