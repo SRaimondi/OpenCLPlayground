@@ -51,13 +51,20 @@ __kernel void SGEMM_1(  unsigned int M, unsigned int N, unsigned int K,
 	const size_t local_col = get_local_id(1);
 	const size_t wg_row = get_group_id(0);
 	const size_t wg_col = get_group_id(1);
+	const size_t row = get_global_id(0);
+	const size_t col = get_global_id(1);
 
-	// Compute starting row for block in matrix A
+	// Compute starting row of A and starting column of B
 	const size_t A_start_row = wg_row * BLOCK_SIZE;
 	const size_t B_start_col = wg_col * BLOCK_SIZE;
 
 	// Loop over all the tiles 
 	const unsigned int num_tiles = (K + BLOCK_SIZE - 1) / BLOCK_SIZE;
+
+	if (row < M && col < N) {
+		C(row, col) = num_tiles;
+	}
+
 	for (unsigned int tile = 0; tile < num_tiles; ++tile) {
 		// Compute the row and the column that we need to load from the matrices
 		const size_t a_row = A_start_row + local_row;
@@ -72,24 +79,6 @@ __kernel void SGEMM_1(  unsigned int M, unsigned int N, unsigned int K,
 		}
 		// Wait for all threads in workgroup to finish 
 		barrier(CLK_LOCAL_MEM_FENCE);
-
-		// Multiply row of SA with column of BS and accumulate
-		for (unsigned int k = 0; k < BLOCK_SIZE; ++k) {
-			if (k < tile * BLOCK_SIZE) {
-				sum += SA(local_row, k) * SB(k, local_col);
-			}
-		}
-
-		// Synchronise again to make sure that all computations are done before loading new tiles
-		barrier(CLK_LOCAL_MEM_FENCE);
 	}
 
-	// Get global thread id
-	const size_t row = get_global_id(0);
-	const size_t col = get_global_id(1);
-
-	if (row < M && col < N) {
-		// Set computed value in output matrix
-		C(row, col) = alpha + beta * C(row, col);
-	}
 }
