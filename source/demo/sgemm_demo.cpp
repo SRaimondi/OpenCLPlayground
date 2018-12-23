@@ -52,14 +52,14 @@ namespace demo {
 
         // Create some data to feed to the kernel
         cl_mem d_A = clCreateBuffer(context,
-                                    CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY,
+                                    CL_MEM_READ_ONLY,
                                     data_size,
                                     nullptr,
                                     &err_code);
         CHECK_CL(err_code);
 
         cl_mem d_B = clCreateBuffer(context,
-                                    CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY,
+                                    CL_MEM_READ_ONLY,
                                     data_size,
                                     nullptr,
                                     &err_code);

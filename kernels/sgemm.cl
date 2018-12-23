@@ -84,6 +84,7 @@ __kernel void SGEMM_1(  unsigned int M, unsigned int N, unsigned int K,
 		barrier(CLK_LOCAL_MEM_FENCE);
 
 		// Increment sum
+		#pragma unroll
 		for (unsigned int k = 0; k < BLOCK_SIZE; ++k) {
 			sum += SA(local_row, k) * SB(k, local_col);
 		}
