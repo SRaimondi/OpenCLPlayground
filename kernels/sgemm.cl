@@ -52,9 +52,6 @@ __kernel void SGEMM_1(  unsigned int M, unsigned int N, unsigned int K,
 	const size_t wg_row = get_group_id(0);
 	const size_t wg_col = get_group_id(1);
 
-	const size_t row = get_global_id(0);
-	const size_t col = get_global_id(1);
-
 	// Compute starting row of A and starting column of B
 	const size_t A_start_row = wg_row * BLOCK_SIZE;
 	const size_t B_start_col = wg_col * BLOCK_SIZE;
@@ -62,10 +59,12 @@ __kernel void SGEMM_1(  unsigned int M, unsigned int N, unsigned int K,
 	// Loop over all the tiles 
 	const unsigned int num_tiles = (K + BLOCK_SIZE - 1) / BLOCK_SIZE;
 	for (unsigned int tile = 0; tile < num_tiles; ++tile) {
+		// Compute current starting k in sum computation
+		const unsigned int start_k = tile * BLOCK_SIZE;
 		// Compute position of the element to load in matrix A and B
 		const size_t a_row = A_start_row + local_row;
-		const size_t a_col = tile * BLOCK_SIZE + local_col;
-		const size_t b_row = tile * BLOCK_SIZE + local_row;
+		const size_t a_col = start_k + local_col;
+		const size_t b_row = start_k + local_row;
 		const size_t b_col = B_start_col + local_col;
 
 		// Test A element
@@ -91,6 +90,9 @@ __kernel void SGEMM_1(  unsigned int M, unsigned int N, unsigned int K,
 
 		barrier(CLK_LOCAL_MEM_FENCE);
 	}
+
+	const size_t row = get_global_id(0);
+	const size_t col = get_global_id(1);
 
 	// Store sum
 	if (row < M && col < N) {

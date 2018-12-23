@@ -233,7 +233,7 @@ namespace demo {
         CHECK_CL(clGetEventProfilingInfo(kernel_event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &kernel_end,
                                          nullptr));
 
-        std::cout << "Kernel execution took " << (kernel_end - kernel_start) / 10e6 << " ms\n";
+        std::cout << "Kernel execution took " << (kernel_end - kernel_start) * 1e-6 << " ms\n";
 
         // Unmap
         CHECK_CL(clEnqueueUnmapMemObject(command_queue, d_C, h_map_C, 0, nullptr, nullptr));
