@@ -32,7 +32,7 @@ __kernel void SGEMM_0(  unsigned int M, unsigned int N, unsigned int K,
 #define SA(i, j) shared_a[(i) + (j) * BLOCK_SIZE]
 #define SB(i, j) shared_b[(i) + (j) * BLOCK_SIZE]
 
-// More advacned version of SGEMM that makes use of local memory to accelerate access to matrix data
+// More advanced version of SGEMM that makes use of local memory to accelerate access to matrix data
 __kernel void SGEMM_1(  unsigned int M, unsigned int N, unsigned int K,
                         float alpha,
                         __global const float* a, unsigned int LDA,

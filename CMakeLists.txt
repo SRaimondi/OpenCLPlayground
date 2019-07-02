@@ -19,7 +19,9 @@ set(SOURCE_FILES
         source/cl/cl_utils.cpp
         source/cl/cl_utils.hpp
         source/demo/saxpy_demo.cpp
-        source/demo/saxpy_demo.hpp source/demo/sgemm_demo.cpp source/demo/sgemm_demo.hpp)
+        source/demo/saxpy_demo.hpp
+        source/demo/sgemm_demo.cpp
+        source/demo/sgemm_demo.hpp)
 
 add_executable(OpenCLPlayground ${SOURCE_FILES})
 

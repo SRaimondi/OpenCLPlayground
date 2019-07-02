@@ -13,10 +13,11 @@
 #include <CL/opencl.h>
 #endif
 
-namespace demo {
+namespace demo
+{
 
-    // Run the SAXPY kernel on the given device
-    void SAXPYDemo(cl_platform_id platform, cl_device_id device, unsigned long vector_size = 4096);
+// Run the SAXPY kernel on the given device
+void SAXPYDemo(cl_platform_id platform, cl_device_id device, unsigned long vector_size = 4096);
 
 } // demo namespace
 
